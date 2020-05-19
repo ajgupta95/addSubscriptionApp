@@ -1,51 +1,75 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../models/myPlan.dart';
-import '../utils/databaseHelper.dart';
+import 'package:subcription_manager/models/myPlan.dart';
+import 'package:subcription_manager/utils/databaseHelper.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_country_picker/flutter_country_picker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 class PlanDetail extends StatefulWidget {
   final Plan plan;
-
   PlanDetail(this.plan);
 
   @override
   _PlanDetailState createState() => _PlanDetailState(this.plan);
-} 
+}
 
-class _PlanDetailState extends State<PlanDetail> {
+class _PlanDetailState extends State<PlanDetail>
+    with SingleTickerProviderStateMixin {
+  DatabaseHelper helper = DatabaseHelper();
+  Plan plan;
+
   final formkey = GlobalKey<FormState>();
-  var _selected;
+
   static var time = [
     'Day',
     'Week',
     'Month',
     'Year',
   ];
-  var every;
+
   var timePeriod = time[2];
-  // create some values
+  var planCurrency = "USD";
+  var _selected;
+  final format = DateFormat("yyyy-MM-dd");
+
   Color pickerColor = Color(0xff443a49);
   Color currentColor = Color(0xff443a49);
 
   Color colorForButton = Colors.white;
-  
 
-// ValueChanged<Color> callback
   void changeColor(Color color) {
     print('your color $color');
-    plan.color=color;
+
     colorForButton = color;
-    setState(() => pickerColor = color);
+    plan.date = DateFormat.yMMMd().format(DateTime.now());
+    setState(() {
+      pickerColor = color;
+      plan.color = color.toString();
+      print(plan.color);
+    });
   }
 
-  DatabaseHelper helper = DatabaseHelper();
-  //String appBarTitle;
-  Plan plan;
+  TextEditingController nameController = TextEditingController();
+  TextEditingController amountController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+  TextEditingController everyController = TextEditingController();
+  TextEditingController firstPaymentController = TextEditingController();
+  TextEditingController expiryDateController = TextEditingController();
+  TextEditingController paymentMethodController = TextEditingController();
+  TextEditingController noteController = TextEditingController();
 
   _PlanDetailState(this.plan);
+
+  TabController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = new TabController(length: 2, vsync: this);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,261 +82,252 @@ class _PlanDetailState extends State<PlanDetail> {
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
-      ),
-      body: Stack(children: <Widget>[
-        Container(
-          // width: 2,
-          // height: 4,
-          padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-          child: Form(
-            key: formkey,
-            child: ListView(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    Flexible(
-                      child: CountryPicker(
-                        showCurrency: true,
-                        showFlag: false,
-                        showName: false,
-                        showCurrencyISO: true,
-                        onChanged: (Country country) {
-                          setState(() {
-                            _selected = country;
-                            plan.currency=_selected.currencyISO;
-                            print(_selected.currencyISO);
-                          });
-                        },
-                        selectedCountry: _selected,
-                      ),
-                    ),
+      ), //appBar
+      body: Container(
+        padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+        child: Form(
+          key: formkey,
+          child: ListView(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Flexible(
+                    child: CountryPicker(
+                      showCurrency: true,
+                      showFlag: false,
+                      showName: false,
+                      showCurrencyISO: true,
+                      onChanged: (Country country) {
+                        setState(() {
+                          _selected = country;
+                          print(country.toString());
+                          planCurrency = _selected.currencyISO;
 
-                    //  SizedBox(width: 10.0,),
-                    Flexible(
-                        child: TextFormField(
-                      autofocus: true,
-                      decoration: InputDecoration(
-                          contentPadding: new EdgeInsets.only(
-                              bottom: 1.0, right: 20, left: 20),
-                          labelText: "Enter amount",
-                          hintText: "0.00",
-                          fillColor: Colors.white,
-                          border: new OutlineInputBorder(
-                            borderRadius: new BorderRadius.circular(25.0),
-                            borderSide: new BorderSide(),
-                          )),
-                             validator: (value) =>
-                      value.isEmpty ? 'Amount can\'t be empty' : null,
-                  onSaved: (value) => plan.amount = value.trim(),
+                          print(_selected.currencyISO);
+                          //  var currencyy ='INR';
+                          //  updateCurrency(currencyy);
+                          plan.currency = planCurrency;
+                          print('herereerer');
+                          print(plan.currency);
+                        });
+                        // plan.currency=_selected.currencyISO.toString();
+                        // print(plan.currency);
+
+                        //setCurrency();
+                      },
+                      selectedCountry: _selected,
+                    ),
+                  ),
+
+                  //  SizedBox(width: 10.0,),
+                  Flexible(
+                      child: TextFormField(
+                    controller: amountController,
+                    //  autofocus: true,
+                    decoration: InputDecoration(
+                        contentPadding: new EdgeInsets.only(
+                            bottom: 1.0, right: 20, left: 20),
+                        labelText: "Enter amount",
+                        hintText: "0.00",
+                        fillColor: Colors.white,
+                        border: new OutlineInputBorder(
+                          borderRadius: new BorderRadius.circular(25.0),
+                          borderSide: new BorderSide(),
+                        )),
+
+                    validator: (value) =>
+                        value.isEmpty ? 'Amount can\'t be empty' : null,
+                    onSaved: (value) {
+                      print(value);
+                      plan.amount = value.trim();
+                    },
+                  )),
+                ],
+              ), //row
+              SizedBox(
+                height: 20.0,
+              ),
+
+              TextFormField(
+                controller: nameController,
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+                decoration: InputDecoration(
+                    contentPadding:
+                        new EdgeInsets.only(bottom: 1.0, right: 20, left: 20),
+                    labelText: "Name",
+                    hintText: "e.g Netflix",
+                    fillColor: Colors.white,
+                    border: new OutlineInputBorder(
+                      borderRadius: new BorderRadius.circular(25.0),
+                      borderSide: new BorderSide(),
                     )),
+                validator: (value) =>
+                    value.isEmpty ? 'Name can\'t be empty' : null,
+                onSaved: (value) => plan.name = value.trim(),
+              ),
+
+              SizedBox(
+                height: 20.0,
+              ),
+
+              TextFormField(
+                controller: descriptionController,
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+                decoration: InputDecoration(
+                    // contentPadding: new EdgeInsets.only(bottom: 1.0,right: 20,left: 20),
+                    contentPadding: new EdgeInsets.symmetric(
+                        vertical: 25.0, horizontal: 10.0),
+                    labelText: "Description(Optional)",
+                    hintText: "e.g Premium plan",
+                    fillColor: Colors.white,
+                    border: new OutlineInputBorder(
+                      borderRadius: new BorderRadius.circular(25.0),
+                      borderSide: new BorderSide(),
+                    )),
+                onSaved: (value) => plan.description = value.trim(),
+
+                // maxLines: 2,
+              ),
+              SizedBox(
+                height: 20.0,
+              ),
+              new Container(
+                // decoration: new BoxDecoration(color: Theme.of(context).primaryColor),
+                child: new TabBar(
+                  controller: _controller,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.black,
+                  labelStyle: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  tabs: [
+                    Tab(text: "Recurring"),
+                    Tab(text: "One Time"),
                   ],
                 ),
-                SizedBox(
-                  height: 20.0,
-                ),
-
-                TextFormField(
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                  decoration: InputDecoration(
-                      contentPadding:
-                          new EdgeInsets.only(bottom: 1.0, right: 20, left: 20),
-                      labelText: "Name",
-                      hintText: "e.g Netflix",
-                      fillColor: Colors.white,
-                      border: new OutlineInputBorder(
-                        borderRadius: new BorderRadius.circular(25.0),
-                        borderSide: new BorderSide(),
-                      )),
-                         validator: (value) =>
-                      value.isEmpty ? 'Name can\'t be empty' : null,
-                  onSaved: (value) => plan.name = value.trim(),
-                ),
-
-                SizedBox(
-                  height: 20.0,
-                ),
-
-                TextFormField(
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                  decoration: InputDecoration(
-                      // contentPadding: new EdgeInsets.only(bottom: 1.0,right: 20,left: 20),
-                      contentPadding: new EdgeInsets.symmetric(
-                          vertical: 25.0, horizontal: 10.0),
-                      labelText: "Description(Optional)",
-                      hintText: "e.g Premium plan",
-                      fillColor: Colors.white,
-                      border: new OutlineInputBorder(
-                        borderRadius: new BorderRadius.circular(25.0),
-                        borderSide: new BorderSide(),
-                      )),
-                       onSaved: (value) => plan.description = value.trim(),
-
-                  // maxLines: 2,
-                ),
-                //TabBar(tabs: [Text('Recurring'),Text('One time')],)
-                // TabBarView(children: <Widget>[
-                //   Text('Recurring'),Text('One time'),
-                // ],),
-              ],
-            ),
-            // bottom:TabBar(tabs: null)
-          ),
-        ),
-        Container(
-            margin: const EdgeInsets.only(top: 217),
-            child: Divider(
-              color: Colors.black,
-              height: 50,
-            )),
-        Container(
-          padding: EdgeInsets.only(top: 250.0, left: 10.0, right: 10.0),
-          child: DefaultTabController(
-            length: 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Container(
-                  decoration: new BoxDecoration(color: Colors.white),
-                  constraints: BoxConstraints.expand(height: 50),
-                  child: TabBar(
-                      labelColor: Colors.blue,
-                      unselectedLabelColor: Colors.black,
-                      labelStyle: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      tabs: [
-                        Tab(text: "Recurring"),
-                        Tab(text: "One Time"),
-                        // Tab(text: "User"),
-                      ]),
-                ),
-                Expanded(
-                  child: Container(
-                    child: TabBarView(children: [
-                      Container(
-                        padding:
-                            EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-                        child: Form(
-                            child: ListView(
+              ),
+              Container(
+                height: 160,
+                child: TabBarView(controller: _controller, children: <Widget>[
+                  Container(
+                    padding:
+                        EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+                    child: ListView(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: <Widget>[
-                                Flexible(
-                                    child: TextFormField(
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                  ),
-                                  decoration: InputDecoration(
-                                      contentPadding: new EdgeInsets.only(
-                                          bottom: 1.0, right: 20, left: 20),
-                                      labelText: "Every",
-                                      hintText: "1",
-                                      fillColor: Colors.white,
-                                      border: new OutlineInputBorder(
-                                        borderRadius:
-                                            new BorderRadius.circular(25.0),
-                                        borderSide: new BorderSide(),
-                                      )),
-                                       validator: (value) =>
-                      value.isEmpty ? 'This can\'t be empty' : null,
-                  onSaved: (value) => plan.every = value.trim(),
-                                )),
-                                Flexible(
-                                    child: DropdownButtonHideUnderline(
-                                                                          child: DropdownButton(
-                                          items: time.map((String dropDownItem) {
-                                            return DropdownMenuItem<String>(
-                                              value: dropDownItem,
-                                              child: Text(dropDownItem),
-                                            );
-                                          }).toList(),
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 25,
-                                          ),
-                                          value: timePeriod,
-                                          onChanged: (valueByUser) {
-                                            setState(() {
-                                              timePeriod = valueByUser;
-                                              plan.timePeriod=valueByUser;
-                                            });
-                                          }),
-                                    )),
-                              ],
-                            ), //Row
-                            SizedBox(
-                              height: 20.0,
-                            ),
-                            TextFormField(
+                            Flexible(
+                                child: TextFormField(
+                              controller: everyController,
                               style: TextStyle(
                                 fontSize: 20,
                               ),
                               decoration: InputDecoration(
                                   contentPadding: new EdgeInsets.only(
                                       bottom: 1.0, right: 20, left: 20),
-                                  labelText: "First Payment(Optional)",
-                                  hintText: "e.g. Today",
+                                  labelText: "Every",
+                                  hintText: "1",
                                   fillColor: Colors.white,
                                   border: new OutlineInputBorder(
                                     borderRadius:
                                         new BorderRadius.circular(25.0),
                                     borderSide: new BorderSide(),
                                   )),
-                                   
-                          onSaved: (value) => plan.firstPayment = value.trim(),
-                            )
+                              validator: (value) =>
+                                  value.isEmpty ? 'This can\'t be empty' : null,
+                              onSaved: (value) => plan.every = value.trim(),
+                            )),
+                            Flexible(
+                                child: DropdownButtonHideUnderline(
+                              child: DropdownButton(
+                                  items: time.map((String dropDownItem) {
+                                    return DropdownMenuItem<String>(
+                                      value: dropDownItem,
+                                      child: Text(dropDownItem),
+                                    );
+                                  }).toList(),
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 25,
+                                  ),
+                                  value: timePeriod,
+                                  onChanged: (valueByUser) {
+                                    setState(() {
+                                      timePeriod = valueByUser;
+                                      plan.timePeriod = timePeriod;
+                                      print(timePeriod);
+                                    });
+                                  }),
+                            )),
                           ],
-                        )),
-                      ),
-
-                      Container(
-                        padding:
-                            EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-                        child: TextFormField(
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
+                        ),
+                        SizedBox(
+                          height: 25.0,
+                        ),
+                        //  Text('Select first payment date: '),
+                        DateTimeField(
+                          format: format,
+                          controller: firstPaymentController,
+                          onShowPicker: (context, currentValue) {
+                            return showDatePicker(
+                                context: context,
+                                firstDate: DateTime(1900),
+                                initialDate: currentValue ?? DateTime.now(),
+                                lastDate: DateTime(2100));
+                          },
                           decoration: InputDecoration(
                               contentPadding: new EdgeInsets.only(
                                   bottom: 1.0, right: 20, left: 20),
-                              labelText: "Expiry Date(Optional)",
-                              hintText: "e.g. In a year",
+                              labelText: "First payment date",
+                              //hintText: "1",
                               fillColor: Colors.white,
                               border: new OutlineInputBorder(
                                 borderRadius: new BorderRadius.circular(25.0),
                                 borderSide: new BorderSide(),
                               )),
-                            
-                  onSaved: (value) => plan.expiryDate = value.trim(),
+                          onSaved: (value) =>
+                              plan.firstPayment = value.toString().substring(1,10),
                         ),
-                      ),
-                      // Container(
-                      //   child: Text("User Body"),
-                      // ),
-                    ]),
+                      ],
+                    ),
                   ),
-                )
-              ],
-            ),
-          ),
-        ),
-        Container(
-            margin: const EdgeInsets.only(top: 425),
-            child: Divider(
-              color: Colors.black,
-              height: 50,
-            )),
-        Container(
-          padding: EdgeInsets.only(top: 458.0, left: 10.0, right: 10.0),
-          child: ListView(
-            children: <Widget>[
+
+                  Container(
+                    padding:
+                        EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+                    child: TextFormField(
+                      controller: expiryDateController,
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                      decoration: InputDecoration(
+                          contentPadding: new EdgeInsets.only(
+                              bottom: 1.0, right: 20, left: 20),
+                          labelText: "Expiry Date(Optional)",
+                          hintText: "e.g. In a year",
+                          fillColor: Colors.white,
+                          border: new OutlineInputBorder(
+                            borderRadius: new BorderRadius.circular(25.0),
+                            borderSide: new BorderSide(),
+                          )),
+                      onSaved: (value) {
+                        plan.expiryDate = value.trim();
+                        plan.timePeriod = '';
+                      },
+                    ),
+                  ),
+                  // Container(
+                  //   child: Text("User Body"),
+                  // ),
+                ]),
+              ),
               RaisedButton(
                   padding: EdgeInsets.all(25),
                   color: colorForButton,
@@ -379,6 +394,7 @@ class _PlanDetailState extends State<PlanDetail> {
                 height: 20.0,
               ),
               TextFormField(
+                controller: paymentMethodController,
                 style: TextStyle(
                   fontSize: 20,
                 ),
@@ -392,13 +408,13 @@ class _PlanDetailState extends State<PlanDetail> {
                       borderRadius: new BorderRadius.circular(25.0),
                       borderSide: new BorderSide(),
                     )),
-                  
-                  onSaved: (value) => plan.paymentMethod = value.trim(),
+                onSaved: (value) => plan.paymentMethod = value.trim(),
               ),
               SizedBox(
                 height: 20.0,
               ),
               TextFormField(
+                controller: noteController,
                 style: TextStyle(
                   fontSize: 20,
                 ),
@@ -413,46 +429,106 @@ class _PlanDetailState extends State<PlanDetail> {
                       borderRadius: new BorderRadius.circular(25.0),
                       borderSide: new BorderSide(),
                     )),
-                                      onSaved: (value) => plan.note = value.trim(),
-
+                onSaved: (value) => plan.note = value.trim(),
               ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.fromLTRB(80, 10, 80, 10),
-                child: RaisedButton(
-                  padding: EdgeInsets.all(12),
-                  color: colorForButton,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(18.0),
-                    // side: BorderSide(color: Colors.black),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      Icon(Icons.save,
+              SizedBox(
+                height: 20.0,
+              ),
+              RaisedButton(
+                padding: EdgeInsets.all(12),
+                color: colorForButton,
+                shape: RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(18.0),
+                  // side: BorderSide(color: Colors.black),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Icon(Icons.save,
+                        color: colorForButton != Color(0xff000000)
+                            ? Colors.black
+                            : Colors.white),
+                    Text(
+                      "Click to add",
+                      // if (color==) {
+
+                      // }
+                      style: TextStyle(
                           color: colorForButton != Color(0xff000000)
                               ? Colors.black
                               : Colors.white),
-                      Text(
-                        "Click to add",
-                        // if (color==) {
-
-                        // }
-                        style: TextStyle(
-                            color: colorForButton != Color(0xff000000)
-                                ? Colors.black
-                                : Colors.white),
-                      ),
-                    ],
-                  ),
-                  onPressed: () {},
+                    ),
+                  ],
                 ),
-              )
+                onPressed: () {
+                  print('you clicked for save');
+                  _save();
+                },
+              ),
             ],
           ),
-        )
-      ]),
-      backgroundColor: Colors.white,
+        ), //listview//form
+      ),
+    );
+  }
+
+  void moveToLastScreen() {
+    Navigator.pop(context, true);
+  }
+
+  void _save() async {
+    final form = formkey.currentState;
+    if (form.validate()) {
+      form.save();
+      moveToLastScreen();
+
+      plan.date = DateFormat.yMMMd().format(DateTime.now());
+      int result;
+      if (plan.id != null) {
+        // Case 1: Update operation
+        print('you hitted here');
+        result = await helper.updatePlan(plan);
+      } else {
+        // Case 2: Insert Operation
+        print('inserting');
+        result = await helper.insertPlan(plan);
+        var planMap = plan.toMap();
+        print("Plan is$planMap");
+        print("result is$result");
+      }
+
+      if (result != 0) {
+        // Success
+        _showAlertDialog('Status', 'Subscription Saved Successfully');
+      } else {
+        // Failure
+        _showAlertDialog('Status', 'Problem Saving Subscription');
+      }
+    } else {
+      print('form is not valid');
+    }
+  }
+
+  void _showAlertDialog(String title, String message) {
+    AlertDialog alertDialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Message'),
+        content: Text(message),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('Okay'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              // moveToLastScreen();
+            },
+          )
+        ],
+      ),
     );
   }
 }

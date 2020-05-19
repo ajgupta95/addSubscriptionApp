@@ -29,6 +29,7 @@ dependencies:
   flutter_country_picker: ^0.1.6
   curved_navigation_bar: ^0.3.2
   flutter_colorpicker: ^0.3.4
+  datetime_picker_formfield: ^1.0.0
 
  
  

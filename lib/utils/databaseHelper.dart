@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io';
-import '../models/myPlan.dart';
+import 'package:subcription_manager/models/myPlan.dart';
 
 class DatabaseHelper {
   static DatabaseHelper _databaseHelper;
@@ -17,8 +17,7 @@ class DatabaseHelper {
 
   String colEvery = 'every';
   String colTimePeriod='timePeriod';
-  String colFirstPayment='firstPayment'
-  ;
+  String colFirstPayment='firstPayment';
   String colExpiryDate = 'expiryDate';
   String colColor='color';
      String colPaymentMethod = 'paymentMethod';
@@ -63,14 +62,14 @@ class DatabaseHelper {
      void _createDb(Database db, int newVersion)async{
       await db.execute(
         'CREATE TABLE  $planTable ($colId INTEGER PRIMARY KEY AUTOINCREMENT,$colCurrency,$colAmount,$colName,'
-        '$colDescription, $colEvery,$colTimePeriod,$colFirstPayment,$colColor,$colPaymentMethod,$colNote,$colDate ) ');
+        '$colDescription, $colEvery,$colTimePeriod,$colFirstPayment,$colExpiryDate,$colColor,$colPaymentMethod,$colNote,$colDate ) ');
      }
 
 
    //To get all contacts
    Future<List<Map<String,dynamic>>> getPlanMapList()async{
      Database db= await this.database;
-     var result = await db.query(planTable,orderBy:'$colAmount ASC');
+     var result = await db.query(planTable,orderBy:'$colDate ASC');
      return result;
    }
 
@@ -84,14 +83,14 @@ class DatabaseHelper {
 
    // To update Contact
 
-   Future<int>  updateContact(Plan plan)async{
+   Future<int>  updatePlan(Plan plan)async{
      Database db= await this.database;
 
      var result =await db.update(planTable, plan.toMap(),where: '$colId=?',whereArgs: [plan.id]);
      return result;
    }
    //To delete contact
-   Future<int> deleteContact(int id) async {
+   Future<int> deletePlan(int id) async {
 		var db = await this.database;
 		int result = await db.rawDelete('DELETE FROM $planTable WHERE $colId = $id');
 		return result;

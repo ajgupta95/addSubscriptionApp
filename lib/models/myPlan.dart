@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class Plan {
@@ -12,7 +13,7 @@ class Plan {
   String _firstPayment;
   String _expiryDate;
 
-  Color _color;
+  String _color;
   String _paymentMethod;
   String _note;
   String _date;
@@ -58,7 +59,7 @@ class Plan {
   String get timePeriod => _timePeriod;
   String get firstPayment => _firstPayment;
   String get expiryDate => _expiryDate;
-  Color get color => _color;
+  String get color => _color;
   String get paymentMethod => _paymentMethod;
   String get note => _note;
 
@@ -96,7 +97,8 @@ class Plan {
     this._expiryDate = newExpiryDate;
   }
 
-  set color(Color newColor) {
+  set color(String newColor) {
+    print(newColor);
     this._color = newColor;
   }
 
