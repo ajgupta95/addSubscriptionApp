@@ -78,7 +78,7 @@ class _PlanListState extends State<PlanList> {
           // });
           if (index == 1) {
             navigateToDetail(
-                Plan('USD', '', '', '', '', 'MONTH', '', '', '', '', '', ''));
+                Plan('USD', '', '', '', '', 'MONTH', '', '', 'Color(0xffffffff)', '', '', ''),'Add Subscription');
             //        Navigator.push(context, MaterialPageRoute(builder: (context) {
             //   return PlanDetail( plan);
             //  }));
@@ -115,7 +115,7 @@ class _PlanListState extends State<PlanList> {
                 // subtitle: Text(this.planList[position].description,
                 // style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                 title: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: EdgeInsets.only(top: 10,left: 15,right: 15),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -162,7 +162,7 @@ class _PlanListState extends State<PlanList> {
                       ]),
                 ),
                 subtitle: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: EdgeInsets.only(top: 10,left: 15,right: 15),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -232,15 +232,15 @@ class _PlanListState extends State<PlanList> {
                         ),
                       ]),
                 ),
-                trailing: GestureDetector(
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.grey,
-                  ),
-                  onTap: () {
-                    _delete(context, planList[position]);
-                  },
-                ),
+                // trailing: GestureDetector(
+                //   child: Icon(
+                //     Icons.delete,
+                //     color: Colors.grey,
+                //   ),
+                //   onTap: () {
+                //     _delete(context, planList[position]);
+                //   },
+                // ),
                 // trailing: Column(
 
                 //  // Text(this.planList)
@@ -267,10 +267,10 @@ class _PlanListState extends State<PlanList> {
     return new Color(int.parse(code.substring(6, 16)));
   }
 
-  void navigateToDetail(Plan plan) async {
+  void navigateToDetail(Plan plan,String title) async {
     bool result =
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlanDetail(plan);
+      return PlanDetail(plan, title);
     }));
 
     if (result == true) {
